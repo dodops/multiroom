@@ -52,3 +52,6 @@ var server = http.createServer(function(request, response){
 server.listen(8000, function(){
   console.log('Server running on port 8000');
 });
+
+var chatServer = require('./lib/chat_server');
+chatServer.listen(server);
