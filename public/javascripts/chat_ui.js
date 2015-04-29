@@ -22,3 +22,56 @@ function processUserInput(chatApp, socket){
   }
   $('#send-message').val('');
 }
+
+var socket = io.connect();
+
+$(document).ready(function() {
+  var chatApp = new Chat(socket);
+
+  socket.on('nameResult', function(result){
+    var message;
+
+    if(result.success){
+      message = "You're now known as " + result.name + '.';
+    } else {
+      message = result.message;
+    }
+    $('#messages').apped(divSystemContentEle(message));
+  });
+  
+  socket.on('joinResult', function(result){
+    $('#room').text(result.room);
+    $('#messages').append(divSystemContentEle('Room changed.'));
+  });
+
+  socket.on('message', function(message){
+    var newElement = $('<div></div>').text(message.text);
+    $('#messages').append(newElement);
+  });
+
+  socket.on('rooms', function(rooms){
+    $('#room-list').empty();
+
+    for(var room in rooms){
+      room = room.substring(1, room.length);
+      if(room != ''){
+        $('#room-list').append(divEscpacedEle(room));
+      }
+    }
+
+    $('#room-list div').on('click', function(){
+      chatApp.processCommand('/join' + $(this).text());
+      $('#send-message').focus();
+    });
+  });
+
+  setInterval(function(){
+    socket.emit('rooms');
+  }, 100);
+
+  $('#send-message').focus();
+  $('#send-form').submit(function(){
+    processUserInput(chatApp, socket);
+    return false;
+  });
+});
